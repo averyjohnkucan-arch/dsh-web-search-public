@@ -1,0 +1,111 @@
+/**
+ * Google engine: credential-free scrape of the classic results page. Google is
+ * the most bot-challenged engine in the chain, so this engine is expected to
+ * frequently advance the chain rather than succeed. Browser-backed (omp port):
+ * when the plain fetch is answered with an enable-JS/enable-JS retry page, a
+ * 403/429, or an "unusual traffic" block, it escalates to the host's stealth
+ * browser and parses the rendered SERP.
+ * @module @hy-sde-org/dsh-web-search-public/engines/google
+ */
+import { browserFetch } from "./browser-page.js";
+import { cleanText, dedupeSources, elementText, elementsByClass, isUsableUrl, parseAttrs, stripNoise } from "./html.js";
+const SEARCH_URL = 'https://www.google.com/search';
+const GOOGLE_HOME_URL = 'https://www.google.com/';
+const RESULT_RENDER_TIMEOUT_MS = 10_000;
+/** Consent cookie so the results page renders in a privacy-basic layout. */
+const CONSENT_COOKIE = 'CONSENT=YES+cb.20231217-14-p0.en+FX+116; SOCS=CAISHAgBEhJnd3NfMjAyNTAxMDgtMF9SQzIaAmVuIAEaBgiA_LipBg';
+/** Distinguish Google's bot walls from a real SERP. Exported for tests. */
+export function blockReason(page) {
+    if (page.html.includes('/httpservice/retry/enablejs') && !/<h3\b/i.test(page.html))
+        return 'javascript';
+    if (page.status === 403 ||
+        page.status === 429 ||
+        page.url.includes('/sorry/') ||
+        /unusual traffic|detected unusual traffic|g-recaptcha/i.test(page.html)) {
+        return 'traffic';
+    }
+    return undefined;
+}
+export class GoogleEngine {
+    userAgent;
+    scraper;
+    id = 'google';
+    constructor(userAgent, scraper) {
+        this.userAgent = userAgent;
+        this.scraper = scraper;
+    }
+    async search(request, signal) {
+        const count = Math.min(Math.max(request.maxResults ?? 10, 1), 20);
+        const params = new URLSearchParams({ q: request.query, hl: 'en', num: String(count) });
+        const page = await browserFetch(`${SEARCH_URL}?${params}`, {
+            userAgent: this.userAgent,
+            ...(signal !== undefined ? { signal } : {}),
+            referer: GOOGLE_HOME_URL,
+            headers: { cookie: CONSENT_COOKIE },
+            ...(this.scraper !== undefined
+                ? {
+                    browser: {
+                        scrape: this.scraper,
+                        homeUrl: GOOGLE_HOME_URL,
+                        ready: { selector: 'a h3', timeoutMs: RESULT_RENDER_TIMEOUT_MS },
+                        shouldFallback: (candidate) => blockReason(candidate) !== undefined,
+                    },
+                }
+                : {}),
+        });
+        return parseGoogle(page.html, request.maxResults ?? 10);
+    }
+}
+/** Resolve Google's `/url?q=` redirect wrapper; other usable URLs pass through. Exported for tests. */
+export function unwrapGoogleHref(href) {
+    if (href.startsWith('/url?q=')) {
+        try {
+            const target = new URL(href, 'https://www.google.com').searchParams.get('q');
+            if (target === null)
+                return undefined;
+            return isUsableUrl(target) ? target : undefined;
+        }
+        catch {
+            return undefined;
+        }
+    }
+    return isUsableUrl(href) ? href : undefined;
+}
+/** Parse Google's classic results page. Exported for contract tests. */
+export function parseGoogle(html, limit) {
+    const doc = stripNoise(html);
+    const searchIndex = doc.indexOf('<div id="search"');
+    const region = searchIndex >= 0 ? doc.slice(searchIndex) : doc;
+    // Organic results are anchors wrapping an `<h3>`; ad and navigation noise is
+    // filtered by requiring an `h3` child and a usable href.
+    const organic = [];
+    for (const match of region.matchAll(/<a\b((?:"[^"]*"|'[^']*'|[^>"'])*)>([\s\S]*?)<\/a>/g)) {
+        const inner = match[2] ?? '';
+        if (!/<h3[\s>]/i.test(inner))
+            continue;
+        const attrs = parseAttrs(match[1] ?? '');
+        const href = unwrapGoogleHref(attrs.href ?? '');
+        if (href === undefined)
+            continue;
+        const title = cleanText(inner);
+        if (title.length === 0)
+            continue;
+        organic.push({ href, title });
+    }
+    const snippetTags = elementsByClass(region, 'VwiC3b', 'div');
+    const sources = [];
+    for (let i = 0; i < organic.length && sources.length < limit; i += 1) {
+        const result = organic[i];
+        if (result === undefined)
+            continue;
+        const snippetTag = snippetTags[i];
+        const snippet = snippetTag === undefined ? undefined : elementText(region, snippetTag);
+        sources.push({
+            url: result.href,
+            title: result.title,
+            ...(snippet !== undefined && snippet.length > 0 ? { snippet } : {}),
+        });
+    }
+    return dedupeSources(sources);
+}
+//# sourceMappingURL=google.js.map

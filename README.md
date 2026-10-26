@@ -23,7 +23,9 @@ If upstream is already installed, remove it first to avoid registering the same 
 dsh plugin --profile web remove @hy-sde-org/dsh-web-search-public
 ```
 
-Then install the built release:
+Paste `https://github.com/averyjohnkucan-arch/dsh-web-search-public` into DSH **Plugins → Add plugin**. The default branch includes built assets, so installation requires no source build.
+
+Or install the built release:
 
 ```sh
 dsh plugin --profile web add https://github.com/averyjohnkucan-arch/dsh-web-search-public/releases/download/v0.2.2/averyjohnkucan-arch-dsh-web-search-public-0.2.2.tgz
