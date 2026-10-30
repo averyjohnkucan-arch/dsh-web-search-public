@@ -3,3 +3,7 @@ node_modules/
 *.tgz
 .DS_Store
 .local/
+
+# DSH compatibility workflow scratch data
+.compat-home/
+.compat-packed/

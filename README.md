@@ -57,3 +57,5 @@ npm pack
 Tests cover upstream search behavior and the fork's provider selection using the actual Cordis patch algorithm and DSH web service, including the original ambiguous-fetch failure.
 
 Original implementation and licensing details: [upstream documentation](UPSTREAM_README.md), [MIT license](LICENSE), and [third-party notices](THIRD-PARTY-NOTICES.md).
+
+See [COMPATIBILITY.md](COMPATIBILITY.md) for supported DSH versions and upgrade checks.
