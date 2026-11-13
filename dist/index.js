@@ -71,6 +71,15 @@ function resolveBrowserScraper(ctx) {
 }
 /** Register the credential-free public search provider with `ctx.web`. */
 export function apply(ctx, config) {
+    // Register before model requests, including when the prompt service mounts later.
+    // Optional injection preserves provider-only hosts with no model prompt registry.
+    ctx.inject(['systemPrompt'], (scope) => {
+        scope.systemPrompt.section({
+            name: 'web-search-public:query-guidance',
+            order: scope.systemPrompt.getSectionOrder('TOOL_WEB_SEARCH') + 1,
+            text: 'When using public web_search, start with one short, focused query per call: the main name or topic plus a few distinctive keywords. Search separate questions separately. Start broad and refine using the sources returned. Use exact-phrase quotes only for wording already verified; avoid stacking uncertain titles, dates, publishers, and site filters in the first query. For example, start with Brian Tracy book title, then narrow to the verified title if needed. If no results are returned, simplify rather than repeating the same query. Empty results can also mean a challenge page; they do not prove the subject does not exist. Respect retry/cooldown messages and verify factual claims against returned sources.',
+        });
+    });
     // Schemastery fills an unconfigured `engines` array with `[]`, so guards
     // cover both undefined and empty rather than relying on `??` alone.
     const engines = config.engines !== undefined && config.engines.length > 0

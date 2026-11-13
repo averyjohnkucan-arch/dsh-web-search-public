@@ -64,20 +64,27 @@
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "~4.0.5",
-    "@deepseek-ai/dsh-web": "^0.2.1-rc.2"
+    "@deepseek-ai/dsh-web": "^0.2.1-rc.2",
+    "@deepseek-ai/dsh-system-prompt": "^0.2.1-rc.2"
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "~4.0.5",
+    "@deepseek-ai/cordis-plugin-include": "~1.0.10",
+    "@deepseek-ai/cordis-plugin-loader": "~1.0.6",
+    "@deepseek-ai/dsh-system-prompt": "0.2.1-rc.2",
     "@deepseek-ai/dsh-web": "0.2.1-rc.2",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "24.12.4",
+    "js-yaml": "^4.3.2",
     "publint": "0.3.21",
     "tsx": "4.22.1",
     "typescript": "5.9.3",
-    "vitest": "3.2.7",
-    "@deepseek-ai/cordis-plugin-include": "~1.0.10",
-    "@deepseek-ai/cordis-plugin-loader": "~1.0.6",
-    "js-yaml": "^4.3.2",
-    "@types/js-yaml": "^4.0.9"
+    "vitest": "3.2.7"
   },
-  "private": true
+  "private": true,
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-system-prompt": {
+      "optional": true
+    }
+  }
 }

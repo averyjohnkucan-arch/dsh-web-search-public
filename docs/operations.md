@@ -45,6 +45,15 @@ change and record what you observed.
   or IP pooling beyond what the platform itself provides. Expect higher bot-challenge /
   rate-limit pressure on the engine hosts than a single-engine chain would produce.
 
+## Guidance before searching
+
+When the host has `systemPrompt`, the plugin contributes model-visible guidance before
+any search: start with one short query per call, search questions separately, start broad,
+and refine from returned sources. Reserve exact quotes for verified wording and avoid
+stacking uncertain titles, dates, publisher names, and site filters. The section is
+registered even if the prompt service loads later and removed when the plugin unloads.
+Provider-only hosts without a prompt registry continue to work with error-time guidance.
+
 ## When results look wrong
 
 1. **All engines failed** → the tool returns `WEB_PROVIDER_ERROR` with a `id: reason; …`

@@ -12,6 +12,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import WebRuntime from '@deepseek-ai/dsh-web'
+import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
 import type { WebSearchRequest, WebSearchSource } from '@deepseek-ai/dsh-web'
 import * as publicPlugin from '../src/index.ts'
 import { PUBLIC_PROVIDER_ID, PublicSearchProvider } from '../src/provider.ts'
@@ -453,6 +454,23 @@ describe('plugin boot', () => {
       return new Response(body, { status: 200, headers: { 'content-type': 'text/html; charset=utf-8' } })
     })
   }
+
+  it.each([true, false])('adds pre-search guidance and removes it on disposal (prompt first: %s)', async (promptFirst) => {
+    const ctx = new Context()
+    await ctx.plugin(WebRuntime, { searchProvider: PUBLIC_PROVIDER_ID })
+    if (promptFirst) await ctx.plugin(SystemPrompt, {})
+    const fiber = await ctx.plugin(publicPlugin, {})
+    if (!promptFirst) await ctx.plugin(SystemPrompt, {})
+    await new Promise(resolve => setTimeout(resolve, 0))
+    const assembly = await ctx.systemPrompt.assemble()
+    const sections = assembly.sections.filter(section => section.name === 'web-search-public:query-guidance')
+    expect(sections).toHaveLength(1)
+    expect(sections[0]?.text).toContain('start with one short, focused query per call')
+    expect(sections[0]?.text).toContain('wording already verified')
+    expect(sections[0]?.text).toContain('Start broad and refine')
+    await fiber.dispose()
+    expect((await ctx.systemPrompt.assemble()).sections.some(section => section.name === 'web-search-public:query-guidance')).toBe(false)
+  })
 
   it('has no default export (namespace plugin export shape)', () => {
     expect('default' in publicPlugin).toBe(false)
