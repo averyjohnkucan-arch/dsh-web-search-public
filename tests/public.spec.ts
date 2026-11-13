@@ -294,12 +294,46 @@ describe('PublicSearchProvider', () => {
     const subject = provider([empty.engine], { maxRetries: 3, retryDelayMs: 2, failureCooldownMs: 100 })
     await expect(subject.search({ query: 'gibberish' })).rejects.toMatchObject({
       code: 'WEB_PROVIDER_ERROR',
-      message: 'all public search engines failed: mojeek: no results',
+      message: expect.stringContaining('Try one simpler query per call:'),
     })
     expect(empty.calls).toHaveLength(1)
     // First no-results search arms nothing (query-level), so the next search
     // runs immediately.
     await expect(subject.search({ query: 'other' })).rejects.toMatchObject({ code: 'WEB_PROVIDER_ERROR' })
+    expect(empty.calls).toHaveLength(2)
+  })
+
+  it('guides an empty search toward a simpler single query that can succeed', async () => {
+    const engine: PublicEngine = {
+      id: 'mojeek',
+      async search(request) {
+        return request.query === 'Brian Tracy'
+          ? [{ url: 'https://publisher.test/author', title: 'Author' }]
+          : []
+      },
+    }
+    const subject = provider([engine])
+    const error = await subject.search({ query: 'Brian Tracy "uncertain title" publisher 2018' })
+      .catch((error: unknown) => error)
+    expect(error).toMatchObject({
+      code: 'WEB_PROVIDER_ERROR',
+      message: expect.stringContaining('remove uncertain exact-phrase quotes'),
+    })
+    expect((error as Error).message).toContain('not a confirmed outage or proof that the subject does not exist')
+    expect((error as Error).message).toContain('do not invent confirmation')
+    await expect(subject.search({ query: 'Brian Tracy' })).resolves.toMatchObject({
+      sources: [{ url: 'https://publisher.test/author' }],
+    })
+  })
+
+  it('nudges repeated empty searches to respect the cooldown before retrying', async () => {
+    const empty = stubEngine('mojeek', { sources: [] })
+    const subject = provider([empty.engine])
+    await expect(subject.search({ query: 'first' })).rejects.toThrow('Try one simpler query per call:')
+    const error = await subject.search({ query: 'second' }).catch((error: unknown) => error)
+    expect((error as Error).message).toContain('Respect the cooldown')
+    expect((error as Error).message).not.toContain('Try one simpler query per call:')
+    await expect(subject.search({ query: 'third' })).rejects.toThrow(/retry in about/)
     expect(empty.calls).toHaveLength(2)
   })
 

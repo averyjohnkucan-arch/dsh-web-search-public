@@ -347,7 +347,17 @@ export class PublicSearchProvider implements WebSearchProvider {
             this.lastAllFailureAt = Date.now()
             this.lastAllFailureMessage = error.message
           }
-          throw new WebError(error.message, 'WEB_PROVIDER_ERROR')
+          const emptyOnly = error.failures.length > 0
+            && error.failures.every(failure => failure.endsWith(': no results'))
+            && error.skipped.length === 0
+          const guidance = emptyOnly
+            ? ' No organic results were parsed; this can mean an overly restrictive query, a bot challenge, or changed engine markup, not a confirmed outage or proof that the subject does not exist.'
+              + (error.trips > 0
+                ? ' Respect the cooldown before searching again.'
+                : ' Try one simpler query per call: keep the main name/topic, remove uncertain exact-phrase quotes and extra date/site/publisher constraints, and search separate questions separately.')
+              + ' If simple queries also return nothing, stop repeating searches and use a known authoritative URL with web_fetch if available. Verify claims from returned sources; do not invent confirmation.'
+            : ''
+          throw new WebError(error.message + guidance, 'WEB_PROVIDER_ERROR')
         }
         throw error
       }

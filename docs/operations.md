@@ -50,6 +50,13 @@ change and record what you observed.
 1. **All engines failed** → the tool returns `WEB_PROVIDER_ERROR` with a `id: reason; …`
    message. Reasons are `ok-but-empty` (challenged or no organic results), `timed out`,
    `HTTP <status>`, or a transport error.
+   For an all-empty response, the runtime error includes an agent-facing recovery nudge:
+   try one simpler query per call, remove uncertain exact phrases and extra constraints,
+   and search separate questions separately. Empty parsed results can also mean bot
+   challenges or changed markup; they do not prove an outage or that a subject does not
+   exist. After repeated empties trip the breaker, the message tells the agent to respect
+   the cooldown instead. If simple searches keep failing, use a known authoritative URL
+   with `web_fetch` if available and verify claims from actual sources.
 2. **One engine is flaky** → the fan-out absorbs it: its empty/challenged answers simply do
    not contribute to the consensus merge. Check that engine’s markup against its parser with
    the real test.
