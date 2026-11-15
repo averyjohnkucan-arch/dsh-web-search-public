@@ -1,6 +1,6 @@
 {
   "name": "@averyjohnkucan-arch/dsh-web-search-public",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Public multi-engine search and direct HTTP fetching for DSH; explicitly selects both providers and disables DeepSeek web backends.",
   "type": "module",
   "main": "./dist/index.js",
@@ -22,7 +22,8 @@
     "SECURITY.md",
     "THIRD-PARTY-NOTICES.md",
     "docs",
-    "UPSTREAM_README.md"
+    "UPSTREAM_README.md",
+    "COMPATIBILITY.md"
   ],
   "scripts": {
     "clean": "rm -rf dist coverage",
@@ -34,7 +35,8 @@
     "prepack": "npm run clean && npm run build"
   },
   "engines": {
-    "node": ">=22.19.0"
+    "node": ">=22.19.0",
+    "dsh": ">=0.2.2-rc.1 <0.3.0-0"
   },
   "repository": {
     "type": "git",
@@ -59,20 +61,20 @@
     "search"
   ],
   "dependencies": {
-    "@deepseek-ai/schemastery": "~3.18.4",
+    "@deepseek-ai/schemastery": "~3.19.0",
     "effect": "4.0.0-rc.118"
   },
   "peerDependencies": {
-    "@deepseek-ai/cordis": "~4.0.5",
-    "@deepseek-ai/dsh-web": "^0.2.1-rc.2",
-    "@deepseek-ai/dsh-system-prompt": "^0.2.1-rc.2"
+    "@deepseek-ai/cordis": "~4.1.0",
+    "@deepseek-ai/dsh-web": ">=0.2.2-rc.1 <0.3.0-0",
+    "@deepseek-ai/dsh-system-prompt": ">=0.2.2-rc.1 <0.3.0-0"
   },
   "devDependencies": {
-    "@deepseek-ai/cordis": "~4.0.5",
+    "@deepseek-ai/cordis": "~4.1.0",
     "@deepseek-ai/cordis-plugin-include": "~1.0.10",
     "@deepseek-ai/cordis-plugin-loader": "~1.0.6",
-    "@deepseek-ai/dsh-system-prompt": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-web": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-system-prompt": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-web": "0.2.2-rc.1",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "24.12.4",
     "js-yaml": "^4.3.2",
