@@ -1,5 +1,7 @@
 # Public search + HTTP fetch for DeepSeek Harness
 
+**RC4 installation trial.** Start DeepSeek Harness with `npx @deepseek-ai/dsh@0.2.2-rc.4 web` (Node.js 24.9 or newer). In **Plugins → Add plugin**, paste the full path to this RC4 trial’s `.tgz` file and enable the plugin.
+
 Personal fork of [hy-sde/dsh-web-search-public](https://github.com/hy-sde/dsh-web-search-public), based on upstream `c980b4c` (0.2.1-alpha.4). Distributed on GitHub only.
 
 Installing this bundle automatically selects:
@@ -15,7 +17,7 @@ All configuration is in **this plugin's `cordis.patch.yml`**, applied through th
 
 ## Install or replace the upstream package
 
-Requires DSH **0.2.1-rc.2** (the version validated by this fork), Node.js 22.19+, and pnpm.
+Requires DSH **0.2.2-rc.4** (the version validated by this fork), Node.js 24.9+, and pnpm.
 
 If upstream is already installed, remove it first to avoid registering the same `web-search-public` entry twice:
 
