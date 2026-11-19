@@ -15,7 +15,7 @@ All configuration is in **this plugin's `cordis.patch.yml`**, applied through th
 
 ## Install or replace the upstream package
 
-Requires DSH **0.2.1-rc.2** (the version validated by this fork), Node.js 22.19+, and pnpm.
+GitHub installation was verified on DSH **0.2.2-rc.4** with Node.js 24.9 or newer.
 
 If upstream is already installed, remove it first to avoid registering the same `web-search-public` entry twice:
 
@@ -25,15 +25,9 @@ dsh plugin --profile web remove @hy-sde-org/dsh-web-search-public
 
 Paste `https://github.com/averyjohnkucan-arch/dsh-web-search-public` into DSH **Plugins → Add plugin**. The default branch includes built assets, so installation requires no source build.
 
-Or install the built release:
+The DSH Web installer can activate the bundle immediately. `dsh --profile web --dump-config` shows the saved provider settings. If your profile or home override selects another provider, reset the override in DSH Settings so the bundle can supply its defaults.
 
-```sh
-dsh plugin --profile web add https://github.com/averyjohnkucan-arch/dsh-web-search-public/releases/download/v0.2.2/averyjohnkucan-arch-dsh-web-search-public-0.2.2.tgz
-```
-
-Restart DSH to load the new bundle. `dsh --profile web --dump-config` should show `web.config.searchProvider: public`, `web.config.fetchProvider: http`, the HTTP provider enabled, and both DeepSeek web entries disabled. If your profile or home override explicitly selects another provider, reset that override through DSH settings: user overrides intentionally take precedence over bundles.
-
-For a source install, run `npm ci && npm test && npm run check && npm pack`, then pass the resulting `.tgz` to `dsh plugin --profile web add`. Use the release archive rather than a bare GitHub repository URL: compiled output is included in the archive.
+For a local source checkout, run `npm ci && npm test && npm run check && npm pack`, then pass the resulting `.tgz` to `dsh plugin --profile web add`.
 
 ## Why this fixes the conflict
 
